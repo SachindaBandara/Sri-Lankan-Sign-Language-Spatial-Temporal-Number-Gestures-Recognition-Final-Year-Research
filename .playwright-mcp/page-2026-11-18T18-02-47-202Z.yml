@@ -1,0 +1,47 @@
+- generic [ref=f2e3]:
+  - banner [ref=f2e4]:
+    - generic [ref=f2e5]:
+      - link "Sign Language Number Learning App" [ref=f2e6] [cursor=pointer]:
+        - /url: /
+      - combobox "Language" [ref=f2e14]:
+        - option "English" [selected]
+        - option "සිංහල"
+  - main [ref=f2e15]:
+    - group "Choose a math activity" [ref=f2e17]:
+      - button "Addition" [pressed] [ref=f2e18] [cursor=pointer]
+      - button "Subtraction" [ref=f2e20] [cursor=pointer]
+      - button "Multiplication" [ref=f2e22] [cursor=pointer]
+      - button "Division" [ref=f2e26] [cursor=pointer]
+    - tabpanel [ref=f2e31]:
+      - generic [ref=f2e32]:
+        - generic [ref=f2e36]:
+          - paragraph [ref=f2e37]: Math challenge
+          - heading "Addition" [level=1] [ref=f2e38]
+        - generic [ref=f2e39]:
+          - heading "Can you solve this?" [level=3] [ref=f2e41]
+          - generic [ref=f2e42]: Getting your question ready...
+        - generic [ref=f2e45]:
+          - generic [ref=f2e47]:
+            - generic [ref=f2e48]:
+              - paragraph [ref=f2e49]: Gesture Recorder
+              - heading "Screen recording for sign gesture capture" [level=2] [ref=f2e50]
+              - paragraph [ref=f2e51]: Keep your hand inside the frame and record a 3-second gesture.
+            - generic [ref=f2e52]: Live camera preview
+            - button "Record 3s" [ref=f2e55] [cursor=pointer]
+          - generic [ref=f2e60]:
+            - paragraph [ref=f2e65]: Predicted Number
+            - paragraph [ref=f2e66]: "--"
+            - paragraph [ref=f2e67]: "Score: 0/0"
+            - button "Submit Answer" [disabled]
+        - alert [ref=f2e68]:
+          - generic [ref=f2e69]: Failed to fetch
+        - generic [ref=f2e70]:
+          - button "Next Problem" [ref=f2e71] [cursor=pointer]
+          - button "View report" [ref=f2e72] [cursor=pointer]
+  - navigation "Main navigation" [ref=f2e73]:
+    - link "Home" [ref=f2e74] [cursor=pointer]:
+      - /url: /
+    - link "Number Identification" [ref=f2e79] [cursor=pointer]:
+      - /url: /number-identification
+    - link "Activities" [ref=f2e86] [cursor=pointer]:
+      - /url: /activities

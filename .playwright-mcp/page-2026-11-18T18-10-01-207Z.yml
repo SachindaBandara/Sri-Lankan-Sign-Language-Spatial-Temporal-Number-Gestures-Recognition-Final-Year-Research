@@ -1,0 +1,38 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - link "Sign Language Number Learning App Learn, practice, and have fun" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e11]:
+          - generic [ref=e12]: Sign Language Number Learning App
+          - generic [ref=e13]: Learn, practice, and have fun
+      - navigation "Main navigation" [ref=e14]:
+        - link "Home" [ref=e15] [cursor=pointer]:
+          - /url: /
+        - link "Number Identification" [ref=e19] [cursor=pointer]:
+          - /url: /number-identification
+        - link "Activities" [ref=e25] [cursor=pointer]:
+          - /url: /activities
+      - combobox "Language" [ref=e29]:
+        - option "English" [selected]
+        - option "සිංහල"
+  - main [ref=e30]:
+    - generic [ref=e31]:
+      - generic [ref=e32]:
+        - paragraph [ref=e33]: Number explorer
+        - heading "Show a number with your hand" [level=1] [ref=e34]
+        - paragraph [ref=e35]: Keep your hand in view, record your sign, and discover which number the camera recognizes.
+      - generic [ref=e36]:
+        - generic [ref=e38]:
+          - generic [ref=e39]:
+            - paragraph [ref=e40]: Gesture Recorder
+            - heading "Practice a sign with your camera" [level=2] [ref=e41]
+            - paragraph [ref=e42]: Keep your hand inside the frame and record a 3-second gesture.
+          - generic [ref=e43]:
+            - generic "Live camera preview" [ref=e44]
+            - generic: Live camera preview
+          - button "Record 3s" [ref=e46] [cursor=pointer]
+        - generic [ref=e51]:
+          - paragraph [ref=e58]: Predicted Number
+          - paragraph [ref=e59]: "?"
+          - paragraph [ref=e60]: Your number will appear here after you record a sign.

@@ -1,0 +1,92 @@
+{
+  "title": "Sign Language Number Learning App",
+  "subtitle": "Real-time number recognition and arithmetic practice with hand gestures.",
+  "app": {
+    "eyebrow": "Learn, practice, and have fun",
+    "mainNavigation": "Main navigation"
+  },
+  "nav": {
+    "home": "Home",
+    "number": "Number Identification",
+    "activities": "Activities",
+    "mobile": {
+      "home": "Home",
+      "number": "Numbers",
+      "activities": "Games"
+    }
+  },
+  "home": {
+    "eyebrow": "A little practice makes a big difference",
+    "welcome": "Ready to learn?",
+    "headline": "Let’s make numbers fun!",
+    "p1": "Use this app to recognize Sri Lankan Sign Language numbers from 0 to 50 in real-time.",
+    "p2": "Then practice addition, subtraction, multiplication, and division using sign-based answers.",
+    "startLearning": "Explore numbers",
+    "numberRange": "Numbers to discover with signs",
+    "learnByDoing": "Learn by doing",
+    "learnByDoingDescription": "Practice with your hands",
+    "chooseLabel": "Your learning path",
+    "chooseTitle": "What would you like to try?",
+    "numbersTitle": "Discover numbers",
+    "numbersDescription": "Show a number sign to the camera and see what it recognizes.",
+    "numbersAction": "Start number practice",
+    "gamesTitle": "Play math games",
+    "gamesDescription": "Solve a fun math question using Sri Lankan Sign Language.",
+    "gamesAction": "Choose a math game"
+  },
+  "recorder": {
+    "heading": "Gesture Recorder",
+    "subtitle": "Practice a sign with your camera",
+    "help": "Keep your hand inside the frame and record a 3-second gesture.",
+    "live_preview": "Live camera preview",
+    "record_left": "{count}s left",
+    "cameraError": "Camera error: {message}"
+  },
+  "number": {
+    "eyebrow": "Number explorer",
+    "pageTitle": "Show a number with your hand",
+    "pageDescription": "Keep your hand in view, record your sign, and discover which number the camera recognizes.",
+    "waitingHint": "Your number will appear here after you record a sign.",
+    "resultHint": "Great signing! Try another number whenever you’re ready.",
+    "noHandDetected": "No hand was detected during recording. Try again with your hand in view.",
+    "predicted": "Predicted Number",
+    "processing": "Processing gesture...",
+    "record": "Record 3s",
+    "stop": "Stop"
+  },
+  "activity": {
+    "chooseGame": "Choose a math activity",
+    "challengeLabel": "Math challenge",
+    "solveThis": "Can you solve this?",
+    "loadingQuestion": "Getting your question ready...",
+    "predicted": "Predicted Number",
+    "processing": "Processing...",
+    "addition": "Addition",
+    "subtraction": "Subtraction",
+    "multiplication": "Multiplication",
+    "division": "Division",
+    "report": "View report",
+    "score": "Score",
+    "submit": "Submit Answer",
+    "next": "Next Problem",
+    "recognized": "Recognized",
+    "expected": "Expected",
+    "correct": "Correct",
+    "wrong": "Wrong"
+  },
+  "report": {
+    "title": "Activity Performance Report",
+    "subtitle": "Track questions, answers, correctness, and points.",
+    "back": "Back to activities",
+    "clear": "Clear report",
+    "totalAttempts": "Total attempts",
+    "correctAnswers": "Correct answers",
+    "points": "Points",
+    "tableTitle": "Performance details",
+    "empty": "No activity attempts recorded yet.",
+    "question": "Question",
+    "correctAnswer": "Correct answer",
+    "submittedAnswer": "Submit answer",
+    "result": "Result"
+  }
+}

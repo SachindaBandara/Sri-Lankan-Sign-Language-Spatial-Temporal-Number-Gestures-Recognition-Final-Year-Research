@@ -1,0 +1,51 @@
+- generic [ref=f1e3]:
+  - banner [ref=f1e4]:
+    - generic [ref=f1e5]:
+      - link "Sign Language Number Learning App" [ref=f1e6] [cursor=pointer]:
+        - /url: /
+      - combobox "Language" [ref=f1e14]:
+        - option "English" [selected]
+        - option "සිංහල"
+  - main [ref=f1e15]:
+    - group "Choose a math activity" [ref=f1e17]:
+      - button "Addition" [pressed] [ref=f1e18] [cursor=pointer]
+      - button "Subtraction" [ref=f1e20] [cursor=pointer]
+      - button "Multiplication" [ref=f1e22] [cursor=pointer]
+      - button "Division" [ref=f1e26] [cursor=pointer]
+    - tabpanel [ref=f1e31]:
+      - generic [ref=f1e32]:
+        - generic [ref=f1e36]:
+          - paragraph [ref=f1e37]: Math challenge
+          - heading "Addition" [level=1] [ref=f1e38]
+        - generic [ref=f1e39]:
+          - heading "Can you solve this?" [level=3] [ref=f1e41]
+          - generic [ref=f1e42]: Getting your question ready...
+        - generic [ref=f1e45]:
+          - generic [ref=f1e47]:
+            - generic [ref=f1e48]:
+              - paragraph [ref=f1e49]: Gesture Recorder
+              - heading "Practice a sign with your camera" [level=2] [ref=f1e50]
+              - paragraph [ref=f1e51]: Keep your hand inside the frame and record a 3-second gesture.
+            - generic [ref=f1e52]:
+              - generic "Live camera preview" [ref=f1e53]
+              - generic: Live camera preview
+            - button "Record 3s" [ref=f1e55] [cursor=pointer]
+            - alert [ref=f1e59]:
+              - generic [ref=f1e60]: "Camera error: Requested device not found"
+          - generic [ref=f1e62]:
+            - paragraph [ref=f1e67]: Predicted Number
+            - paragraph [ref=f1e68]: "--"
+            - paragraph [ref=f1e69]: "Score: 0/0"
+            - button "Submit Answer" [disabled]
+        - alert [ref=f1e70]:
+          - generic [ref=f1e71]: Failed to fetch
+        - generic [ref=f1e72]:
+          - button "Next Problem" [ref=f1e73] [cursor=pointer]
+          - button "View report" [ref=f1e74] [cursor=pointer]
+  - navigation "Main navigation" [ref=f1e75]:
+    - link "Home" [ref=f1e76] [cursor=pointer]:
+      - /url: /
+    - link "Numbers" [ref=f1e81] [cursor=pointer]:
+      - /url: /number-identification
+    - link "Games" [ref=f1e88] [cursor=pointer]:
+      - /url: /activities

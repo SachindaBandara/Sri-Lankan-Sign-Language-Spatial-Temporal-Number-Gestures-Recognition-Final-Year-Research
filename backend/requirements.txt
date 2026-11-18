@@ -1,0 +1,11 @@
+Flask==3.0.3
+Flask-Cors==4.0.0
+opencv-contrib-python==4.11.0.86
+mediapipe==0.10.14
+numpy==1.26.4
+pandas==2.2.2
+joblib==1.4.2
+scikit-learn==1.6.1
+# Pin MediaPipe's otherwise unbounded JAX dependencies to the NumPy 1.x stack.
+jax==0.7.1
+jaxlib==0.7.1

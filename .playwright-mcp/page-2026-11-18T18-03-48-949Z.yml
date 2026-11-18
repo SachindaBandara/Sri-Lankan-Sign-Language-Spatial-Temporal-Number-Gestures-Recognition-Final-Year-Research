@@ -1,0 +1,38 @@
+- generic [ref=f4e3]:
+  - banner [ref=f4e4]:
+    - generic [ref=f4e5]:
+      - link "Sign Language Number Learning App" [ref=f4e6] [cursor=pointer]:
+        - /url: /
+      - combobox "Language" [ref=f4e14]:
+        - option "English" [selected]
+        - option "සිංහල"
+  - main [ref=f4e15]:
+    - generic [ref=f4e16]:
+      - generic [ref=f4e18]:
+        - generic [ref=f4e23]:
+          - heading "Activity Performance Report" [level=3] [ref=f4e24]
+          - paragraph [ref=f4e25]: Track questions, answers, correctness, and points.
+        - generic [ref=f4e26]:
+          - link "Back to activities" [ref=f4e27] [cursor=pointer]:
+            - /url: /activities
+          - button "Clear report" [ref=f4e30] [cursor=pointer]
+      - generic [ref=f4e34]:
+        - generic [ref=f4e36]:
+          - paragraph [ref=f4e37]: Total attempts
+          - paragraph [ref=f4e38]: "0"
+        - generic [ref=f4e40]:
+          - paragraph [ref=f4e41]: Correct answers
+          - paragraph [ref=f4e42]: "0"
+        - generic [ref=f4e44]:
+          - paragraph [ref=f4e45]: Points
+          - paragraph [ref=f4e46]: "0"
+      - generic [ref=f4e47]:
+        - heading "Performance details" [level=3] [ref=f4e49]
+        - paragraph [ref=f4e51]: No activity attempts recorded yet.
+  - navigation "Main navigation" [ref=f4e52]:
+    - link "Home" [ref=f4e53] [cursor=pointer]:
+      - /url: /
+    - link "Numbers" [ref=f4e58] [cursor=pointer]:
+      - /url: /number-identification
+    - link "Games" [ref=f4e65] [cursor=pointer]:
+      - /url: /activities

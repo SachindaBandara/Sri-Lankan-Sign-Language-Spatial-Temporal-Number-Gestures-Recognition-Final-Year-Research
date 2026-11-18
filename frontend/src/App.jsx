@@ -10,7 +10,7 @@ import LanguageSelector from "./components/LanguageSelector";
 import ActivityNav from "./components/ActivityNav";
 
 function InnerApp() {
-  const { t } = useTranslation();
+  const { lang, t } = useTranslation();
   const location = useLocation();
 
   const navItems = [
@@ -20,7 +20,7 @@ function InnerApp() {
   ];
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" lang={lang}>
       <header className="app-header">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-4">
           <NavLink to="/" className="flex min-w-0 items-center gap-3 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">

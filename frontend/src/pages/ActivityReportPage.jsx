@@ -72,19 +72,19 @@ export default function ActivityReportPage() {
         <Card className="learning-card">
           <CardContent className="p-6">
             <p className="text-sm text-slate-500">{t("report.totalAttempts") || "Total attempts"}</p>
-            <p className="mt-2 text-3xl font-bold text-slate-900">{summary.total}</p>
+            <p className="english-font mt-2 text-3xl font-bold text-slate-900">{summary.total}</p>
           </CardContent>
         </Card>
         <Card className="learning-card">
           <CardContent className="p-6">
             <p className="text-sm text-slate-500">{t("report.correctAnswers") || "Correct answers"}</p>
-            <p className="mt-2 text-3xl font-bold text-emerald-600">{summary.correct}</p>
+            <p className="english-font mt-2 text-3xl font-bold text-emerald-600">{summary.correct}</p>
           </CardContent>
         </Card>
         <Card className="learning-card">
           <CardContent className="p-6">
             <p className="text-sm text-slate-500">{t("report.points") || "Points"}</p>
-            <p className="mt-2 text-3xl font-bold text-indigo-600">{summary.points}</p>
+            <p className="english-font mt-2 text-3xl font-bold text-indigo-600">{summary.points}</p>
           </CardContent>
         </Card>
       </div>
@@ -110,15 +110,15 @@ export default function ActivityReportPage() {
               <tbody>
                 {entries.map((entry) => (
                   <tr key={entry.id} className="border-b border-slate-100 align-top transition-colors hover:bg-violet-50/50">
-                    <td className="py-4 pr-4 font-medium text-slate-900">{entry.question}</td>
-                    <td className="py-4 pr-4 text-slate-700">{entry.correctAnswer}</td>
-                    <td className="py-4 pr-4 text-slate-700">{entry.submittedAnswer}</td>
+                    <td className="english-font py-4 pr-4 font-medium text-slate-900">{entry.question}</td>
+                    <td className="english-font py-4 pr-4 text-slate-700">{entry.correctAnswer}</td>
+                    <td className="english-font py-4 pr-4 text-slate-700">{entry.submittedAnswer}</td>
                     <td className={entry.isCorrect ? "py-4 pr-4 font-semibold text-emerald-600" : "py-4 pr-4 font-semibold text-red-600"}>
                       <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${entry.isCorrect ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
                         {entry.isCorrect ? (t("activity.correct") || "Correct") : (t("activity.wrong") || "Incorrect")}
                       </span>
                     </td>
-                    <td className="py-4 pr-4 font-semibold text-indigo-600">{entry.points}</td>
+                    <td className="english-font py-4 pr-4 font-semibold text-indigo-600">{entry.points}</td>
                   </tr>
                 ))}
               </tbody>

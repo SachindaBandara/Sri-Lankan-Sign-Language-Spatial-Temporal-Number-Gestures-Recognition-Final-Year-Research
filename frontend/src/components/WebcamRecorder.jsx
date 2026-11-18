@@ -3,6 +3,7 @@ import { Camera, Circle, Square } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { Alert, AlertDescription } from "./ui/alert";
+import TextWithEnglishNumbers from "./TextWithEnglishNumbers";
 import { useTranslation } from "../i18n";
 
 const RECORD_DURATION_MS = 3000; // ✔ backend aligned
@@ -117,7 +118,7 @@ export default function WebcamRecorder({ onVideoCapture, className = "" }) {
             {t("recorder.subtitle")}
           </h2>
           <p className="mx-auto max-w-sm text-sm leading-6 text-slate-500">
-            {t("recorder.help")}
+            <TextWithEnglishNumbers text={t("recorder.help")} />
           </p>
         </div>
 
@@ -143,7 +144,9 @@ export default function WebcamRecorder({ onVideoCapture, className = "" }) {
             {state === "recording" && (
               <div className="flex items-center gap-2 rounded-full bg-red-500/90 px-3 py-1 text-xs font-semibold text-white shadow-lg shadow-red-500/30">
                 <Circle className="h-2.5 w-2.5 fill-white text-white" />
-                {t("recorder.record_left", { count: countdown })}
+                {t("recorder.record_left_prefix")}
+                <span className="english-font">{countdown}</span>
+                {t("recorder.record_left_suffix")}
               </div>
             )}
           </div>
@@ -157,7 +160,9 @@ export default function WebcamRecorder({ onVideoCapture, className = "" }) {
           {state !== "recording" ? (
             <Button onClick={startRecording} className="w-full sm:w-auto sm:min-w-40">
               <Camera className="w-4 h-4 mr-2" />
-              {t("number.record")}
+              {t("number.record_prefix")}
+              <span className="english-font">3</span>
+              {t("number.record_suffix")}
             </Button>
           ) : (
             <Button variant="destructive" onClick={stopRecording} className="w-full sm:w-auto sm:min-w-40">

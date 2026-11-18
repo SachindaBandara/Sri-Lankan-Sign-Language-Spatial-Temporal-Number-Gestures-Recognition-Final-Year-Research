@@ -76,7 +76,7 @@ export default function NumberIdentificationPage() {
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.85, y: -6 }}
                   transition={{ duration: reduceMotion ? 0.15 : 0.22, ease: "easeOut" }}
-                  className="inline-block"
+                  className="english-font inline-block"
                 >
                   {loading ? "…" : prediction ?? "?"}
                 </motion.span>

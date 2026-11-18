@@ -2,6 +2,7 @@ import { ArrowRight, BookOpen, Calculator, Hand, Sparkles, Star } from "lucide-r
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "../components/ui/card";
+import TextWithEnglishNumbers from "../components/TextWithEnglishNumbers";
 import { useTranslation } from "../i18n";
 import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
 
@@ -57,7 +58,7 @@ export default function HomePage() {
                 <span className="mt-1 block text-amber-200">{t("home.headline")}</span>
               </h1>
               <p className="mt-4 max-w-xl text-sm leading-7 text-violet-100 sm:text-base">
-                {t("home.p1")}
+                <TextWithEnglishNumbers text={t("home.p1")} />
               </p>
               <p className="mt-2 max-w-xl text-sm leading-7 text-violet-100/90 sm:text-base">
                 {t("home.p2")}
@@ -81,9 +82,9 @@ export default function HomePage() {
               >
                 <Hand className="h-14 w-14" strokeWidth={1.8} aria-hidden="true" />
               </motion.div>
-              <span className="absolute left-5 top-6 grid h-12 w-12 place-items-center rounded-2xl bg-sky-300 text-lg font-black text-sky-950 shadow-lg">0</span>
-              <span className="absolute right-2 top-14 grid h-12 w-12 place-items-center rounded-2xl bg-pink-300 text-lg font-black text-pink-950 shadow-lg">5</span>
-              <span className="absolute bottom-1 left-12 grid h-12 w-12 place-items-center rounded-2xl bg-emerald-300 text-lg font-black text-emerald-950 shadow-lg">10</span>
+              <span className="english-font absolute left-5 top-6 grid h-12 w-12 place-items-center rounded-2xl bg-sky-300 text-lg font-black text-sky-950 shadow-lg">0</span>
+              <span className="english-font absolute right-2 top-14 grid h-12 w-12 place-items-center rounded-2xl bg-pink-300 text-lg font-black text-pink-950 shadow-lg">5</span>
+              <span className="english-font absolute bottom-1 left-12 grid h-12 w-12 place-items-center rounded-2xl bg-emerald-300 text-lg font-black text-emerald-950 shadow-lg">10</span>
               <span className="absolute bottom-6 right-4 grid h-11 w-11 place-items-center rounded-2xl bg-white text-violet-700 shadow-lg">
                 <Star className="h-5 w-5 fill-current" aria-hidden="true" />
               </span>
@@ -103,7 +104,7 @@ export default function HomePage() {
             <Hand className="h-6 w-6" aria-hidden="true" />
           </span>
           <div>
-            <p className="text-lg font-black text-slate-900">0–50</p>
+            <p className="english-font text-lg font-black text-slate-900">0–50</p>
             <p className="text-sm font-semibold text-slate-600">{t("home.numberRange")}</p>
           </div>
         </motion.div>

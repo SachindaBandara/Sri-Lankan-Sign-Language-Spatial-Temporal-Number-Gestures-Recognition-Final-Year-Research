@@ -167,6 +167,7 @@ export default function ActivityPage({ operation, title, icon }) {
             <AnimatePresence mode="wait">
               <motion.span
                 key={problem ? `${problem.left}-${problem.operator}-${problem.right}` : "loading"}
+                className={problem ? "english-font" : undefined}
                 initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.92, y: 8 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.96, y: -6 }}
@@ -203,14 +204,15 @@ export default function ActivityPage({ operation, title, icon }) {
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.85, y: -6 }}
                   transition={{ duration: reduceMotion ? 0.15 : 0.22, ease: "easeOut" }}
-                  className="inline-block"
+                  className="english-font inline-block"
                 >
                   {loading ? "…" : livePrediction}
                 </motion.span>
               </AnimatePresence>
             </p>
             <p className="mt-3 text-sm font-semibold text-white/80">
-              {t("activity.score")}: {score.correct}/{score.total}
+              {t("activity.score")}:{" "}
+              <span className="english-font">{score.correct}/{score.total}</span>
             </p>
 
             {!result && (
@@ -245,8 +247,14 @@ export default function ActivityPage({ operation, title, icon }) {
         >
           <Card className={`learning-card border-l-4 ${result.is_correct ? "border-l-emerald-500" : "border-l-amber-500"}`}>
             <CardContent className="space-y-2 p-5 sm:p-6">
-              <p className="font-semibold text-slate-700">{t("activity.recognized")}: {result.predicted_answer}</p>
-              <p className="font-semibold text-slate-700">{t("activity.expected")}: {result.expected_answer}</p>
+              <p className="font-semibold text-slate-700">
+                {t("activity.recognized")}:{" "}
+                <span className="english-font">{result.predicted_answer}</span>
+              </p>
+              <p className="font-semibold text-slate-700">
+                {t("activity.expected")}:{" "}
+                <span className="english-font">{result.expected_answer}</span>
+              </p>
               <p className={`font-extrabold ${result.is_correct ? "text-emerald-700" : "text-amber-700"}`}>
                 {result.is_correct ? t("activity.correct") : t("activity.wrong")}
               </p>

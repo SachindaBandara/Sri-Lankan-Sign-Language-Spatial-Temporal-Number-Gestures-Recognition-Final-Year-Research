@@ -39,7 +39,8 @@
     "subtitle": "Practice a sign with your camera",
     "help": "Keep your hand inside the frame and record a 3-second gesture.",
     "live_preview": "Live camera preview",
-    "record_left": "{count}s left",
+    "record_left_prefix": "",
+    "record_left_suffix": "s left",
     "cameraError": "Camera error: {message}"
   },
   "number": {
@@ -51,7 +52,8 @@
     "noHandDetected": "No hand was detected during recording. Try again with your hand in view.",
     "predicted": "Predicted Number",
     "processing": "Processing gesture...",
-    "record": "Record 3s",
+    "record_prefix": "Record ",
+    "record_suffix": "s",
     "stop": "Stop"
   },
   "activity": {

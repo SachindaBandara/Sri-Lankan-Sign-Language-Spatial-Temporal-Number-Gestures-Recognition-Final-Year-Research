@@ -120,18 +120,8 @@ select {
 }
 
 .learning-card-hover:hover {
-  transform: translateY(-3px);
   border-color: #ded8ff;
   box-shadow: 0 16px 34px rgb(46 42 100 / 10%);
-}
-
-.hero-doodle {
-  animation: float 5s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0) rotate(-5deg); }
-  50% { transform: translateY(-8px) rotate(2deg); }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { Brain, Sparkles } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import WebcamRecorder from "../components/WebcamRecorder";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Alert, AlertDescription } from "../components/ui/alert";
 import { useTranslation } from "../i18n";
+import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
 
 import {
   generateQuestion,
@@ -30,6 +32,7 @@ function writeReportEntry(entry) {
 
 export default function ActivityPage({ operation, title, icon }) {
   const { t } = useTranslation();
+  const reduceMotion = usePrefersReducedMotion();
   const navigate = useNavigate();
   const [problem, setProblem] = useState(null);
   const [livePrediction, setLivePrediction] = useState("--");
@@ -37,6 +40,7 @@ export default function ActivityPage({ operation, title, icon }) {
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const displayOperator = operation === "division" ? "÷" : problem?.operator;
 
   const loadProblem = async () => {
     setError("");
@@ -109,7 +113,7 @@ export default function ActivityPage({ operation, title, icon }) {
         id: crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
         operation,
         title,
-        question: `${problem.left} ${problem.operator} ${problem.right} = ?`,
+        question: `${problem.left} ${displayOperator} ${problem.right} = ?`,
         correctAnswer: evaluation.expected_answer,
         submittedAnswer: livePrediction,
         isCorrect: Boolean(evaluation.is_correct),
@@ -129,7 +133,12 @@ export default function ActivityPage({ operation, title, icon }) {
   };
 
   return (
-    <section className="space-y-5 sm:space-y-6">
+    <motion.section
+      initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: reduceMotion ? 0.18 : 0.35, ease: "easeOut" }}
+      className="space-y-5 sm:space-y-6"
+    >
       <div className="flex items-center gap-3">
         <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-violet-100 text-violet-700">
           {(() => {
@@ -154,13 +163,20 @@ export default function ActivityPage({ operation, title, icon }) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div
-            aria-live="polite"
-            className="flex min-h-24 items-center justify-center rounded-2xl bg-gradient-to-r from-violet-50 to-sky-50 px-3 py-5 text-3xl font-black tracking-wide text-slate-900 sm:min-h-28 sm:text-5xl"
-          >
-            {problem
-              ? `${problem.left} ${problem.operator} ${problem.right} = ?`
-              : <span className="text-base font-semibold text-slate-500">{t("activity.loadingQuestion")}</span>}
+          <div aria-live="polite" className="flex min-h-24 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-r from-violet-50 to-sky-50 px-3 py-5 text-3xl font-black tracking-wide text-slate-900 sm:min-h-28 sm:text-5xl">
+            <AnimatePresence mode="wait">
+              <motion.span
+                key={problem ? `${problem.left}-${problem.operator}-${problem.right}` : "loading"}
+                initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.92, y: 8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.96, y: -6 }}
+                transition={{ duration: reduceMotion ? 0.15 : 0.2, ease: "easeOut" }}
+              >
+                {problem
+                  ? `${problem.left} ${displayOperator} ${problem.right} = ?`
+                  : <span className="text-base font-semibold text-slate-500">{t("activity.loadingQuestion")}</span>}
+              </motion.span>
+            </AnimatePresence>
           </div>
         </CardContent>
       </Card>
@@ -170,40 +186,73 @@ export default function ActivityPage({ operation, title, icon }) {
 
         <Card className="flex min-h-[28rem] flex-col items-center justify-center overflow-hidden rounded-[1.5rem] border-0 bg-gradient-to-br from-violet-600 to-indigo-700 text-white shadow-[0_16px_40px_rgba(87,65,194,0.18)]">
           <CardContent className="flex w-full flex-1 flex-col items-center justify-center p-6 text-center sm:p-8">
-            <span className="grid h-12 w-12 place-items-center rounded-2xl bg-white/15 text-amber-200 ring-1 ring-white/20">
+            <motion.span
+              className="grid h-12 w-12 place-items-center rounded-2xl bg-white/15 text-amber-200 ring-1 ring-white/20"
+              initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.7, rotate: -10 }}
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              transition={{ duration: reduceMotion ? 0.18 : 0.35, ease: "easeOut" }}
+            >
               <Sparkles className="h-6 w-6" aria-hidden="true" />
-            </span>
+            </motion.span>
             <p className="mt-4 text-sm font-bold text-white/75">{t("activity.predicted")}</p>
-            <p aria-live="polite" className="mt-1 text-7xl font-black leading-none tracking-tight">
-              {loading ? "…" : livePrediction}
+            <p aria-live="polite" className="mt-1 min-h-[4.5rem] text-7xl font-black leading-none tracking-tight">
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={loading ? "processing" : livePrediction}
+                  initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.7, y: 8 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.85, y: -6 }}
+                  transition={{ duration: reduceMotion ? 0.15 : 0.22, ease: "easeOut" }}
+                  className="inline-block"
+                >
+                  {loading ? "…" : livePrediction}
+                </motion.span>
+              </AnimatePresence>
             </p>
             <p className="mt-3 text-sm font-semibold text-white/80">
               {t("activity.score")}: {score.correct}/{score.total}
             </p>
 
             {!result && (
-              <Button
-                className="mt-5 w-full bg-amber-300 text-violet-950 hover:bg-amber-200 sm:w-auto"
-                onClick={submitLiveAnswer}
-                disabled={!problem || livePrediction === "--" || loading}
+              <motion.div
+                className="mt-5 w-full sm:w-auto"
+                whileTap={reduceMotion ? undefined : { scale: 0.96 }}
               >
-                {t("activity.submit")}
-              </Button>
+                <Button
+                  className="w-full bg-amber-300 text-violet-950 hover:bg-amber-200 sm:w-auto"
+                  onClick={submitLiveAnswer}
+                  disabled={!problem || livePrediction === "--" || loading}
+                >
+                  {t("activity.submit")}
+                </Button>
+              </motion.div>
             )}
           </CardContent>
         </Card>
       </div>
 
       {result && (
-        <Card className={`learning-card border-l-4 ${result.is_correct ? "border-l-emerald-500" : "border-l-amber-500"}`}>
-          <CardContent className="space-y-2 p-5 sm:p-6">
-            <p className="font-semibold text-slate-700">{t("activity.recognized")}: {result.predicted_answer}</p>
-            <p className="font-semibold text-slate-700">{t("activity.expected")}: {result.expected_answer}</p>
-            <p className={`font-extrabold ${result.is_correct ? "text-emerald-700" : "text-amber-700"}`}>
-              {result.is_correct ? t("activity.correct") : t("activity.wrong")}
-            </p>
-          </CardContent>
-        </Card>
+        <motion.div
+          initial={reduceMotion
+            ? { opacity: 0 }
+            : { opacity: 0, y: 12, scale: result.is_correct ? 0.92 : 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={reduceMotion
+            ? { duration: 0.18 }
+            : result.is_correct
+              ? { type: "spring", stiffness: 260, damping: 16 }
+              : { duration: 0.25, ease: "easeOut" }}
+        >
+          <Card className={`learning-card border-l-4 ${result.is_correct ? "border-l-emerald-500" : "border-l-amber-500"}`}>
+            <CardContent className="space-y-2 p-5 sm:p-6">
+              <p className="font-semibold text-slate-700">{t("activity.recognized")}: {result.predicted_answer}</p>
+              <p className="font-semibold text-slate-700">{t("activity.expected")}: {result.expected_answer}</p>
+              <p className={`font-extrabold ${result.is_correct ? "text-emerald-700" : "text-amber-700"}`}>
+                {result.is_correct ? t("activity.correct") : t("activity.wrong")}
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
       )}
 
       {error && (
@@ -246,6 +295,6 @@ export default function ActivityPage({ operation, title, icon }) {
           {t("activity.report") || "View report"}
         </Button>
       </div>
-    </section>
+    </motion.section>
   );
 }

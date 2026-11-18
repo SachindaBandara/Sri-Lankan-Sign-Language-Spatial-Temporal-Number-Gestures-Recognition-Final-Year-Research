@@ -1,13 +1,16 @@
 import { useCallback, useState } from "react";
 import { Hand, LoaderCircle, Sparkles } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import WebcamRecorder from "../components/WebcamRecorder";
 import { predictNumber } from "../services/api";
 import { Card, CardContent } from "../components/ui/card";
 import { Alert, AlertDescription } from "../components/ui/alert";
 import { useTranslation } from "../i18n";
+import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
 
 export default function NumberIdentificationPage() {
   const { t } = useTranslation();
+  const reduceMotion = usePrefersReducedMotion();
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -32,7 +35,12 @@ export default function NumberIdentificationPage() {
   }, [t]);
 
   return (
-    <section className="space-y-6 sm:space-y-8">
+    <motion.section
+      initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: reduceMotion ? 0.18 : 0.35, ease: "easeOut" }}
+      className="space-y-6 sm:space-y-8"
+    >
       <div className="max-w-2xl">
         <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-sky-700">
           {t("number.eyebrow")}
@@ -60,11 +68,19 @@ export default function NumberIdentificationPage() {
               )}
             </div>
             <p className="text-sm font-bold text-white/80">{t("number.predicted")}</p>
-            <p
-              aria-live="polite"
-              className="mt-2 min-h-[5rem] text-7xl font-black leading-none tracking-tight sm:text-8xl"
-            >
-              {loading ? "…" : prediction ?? "?"}
+            <p aria-live="polite" className="mt-2 min-h-[5rem] text-7xl font-black leading-none tracking-tight sm:text-8xl">
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={loading ? "processing" : prediction ?? "waiting"}
+                  initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.7, y: 8 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.85, y: -6 }}
+                  transition={{ duration: reduceMotion ? 0.15 : 0.22, ease: "easeOut" }}
+                  className="inline-block"
+                >
+                  {loading ? "…" : prediction ?? "?"}
+                </motion.span>
+              </AnimatePresence>
             </p>
             <p className="mt-4 max-w-xs text-sm leading-6 text-white/80">
               {loading
@@ -82,6 +98,6 @@ export default function NumberIdentificationPage() {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-    </section>
+    </motion.section>
   );
 }

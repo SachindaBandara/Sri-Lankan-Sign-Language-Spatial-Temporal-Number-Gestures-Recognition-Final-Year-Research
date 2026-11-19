@@ -9,10 +9,16 @@
     "home": "Home",
     "number": "Number Identification",
     "activities": "Activities",
+    "dashboard": "My progress",
+    "teacherDashboard": "Class progress",
+    "account": "Student account",
     "mobile": {
       "home": "Home",
       "number": "Numbers",
-      "activities": "Games"
+      "activities": "Games",
+      "dashboard": "Progress",
+      "teacherDashboard": "Class",
+      "account": "Account"
     }
   },
   "home": {
@@ -45,12 +51,16 @@
   },
   "number": {
     "eyebrow": "Number explorer",
-    "pageTitle": "Show a number with your hand",
-    "pageDescription": "Keep your hand in view, record your sign, and discover which number the camera recognizes.",
-    "waitingHint": "Your number will appear here after you record a sign.",
-    "resultHint": "Great signing! Try another number whenever you’re ready.",
+    "pageTitle": "Sign the number shown",
+    "pageDescription": "Match the target by signing it. Only a confidently recognized sign is scored.",
+    "waitingHint": "Show the target number with your hand.",
+    "resultHint": "Keep practicing number signs.",
     "noHandDetected": "No hand was detected during recording. Try again with your hand in view.",
+    "signThis": "Sign this number",
     "predicted": "Predicted Number",
+    "correct": "Correct! You signed the target number.",
+    "incorrect": "Not quite. Try signing the same target again.",
+    "nextTarget": "Next number",
     "processing": "Processing gesture...",
     "record_prefix": "Record ",
     "record_suffix": "s",
@@ -58,6 +68,12 @@
   },
   "activity": {
     "chooseGame": "Choose a math activity",
+    "difficulty": "Difficulty level",
+    "adaptive": "Recommended for me",
+    "easy": "Beginner",
+    "standard": "Intermediate",
+    "hard": "Advanced",
+    "start": "Start activity",
     "challengeLabel": "Math challenge",
     "solveThis": "Can you solve this?",
     "loadingQuestion": "Getting your question ready...",
@@ -70,18 +86,24 @@
     "report": "View report",
     "score": "Score",
     "submit": "Submit Answer",
+    "tryAgain": "Try again",
     "next": "Next Problem",
+    "finish": "Finish activity",
     "recognized": "Recognized",
     "expected": "Expected",
     "correct": "Correct",
-    "wrong": "Wrong"
+    "wrong": "Wrong",
+    "lowConfidence": "The sign was uncertain. Please record the gesture again.",
+    "skipped": "Skipped",
+    "invalid": "Invalid answer",
+    "unanswered": "No answer"
   },
   "report": {
     "title": "Activity Performance Report",
     "subtitle": "Track questions, answers, correctness, and points.",
     "back": "Back to activities",
     "clear": "Clear report",
-    "totalAttempts": "Total attempts",
+    "totalAttempts": "Valid answer attempts",
     "correctAnswers": "Correct answers",
     "points": "Points",
     "tableTitle": "Performance details",
@@ -89,6 +111,160 @@
     "question": "Question",
     "correctAnswer": "Correct answer",
     "submittedAnswer": "Submit answer",
-    "result": "Result"
+    "result": "Result",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "account": {
+    "title": "Student account",
+    "login": "Sign in",
+    "register": "Create student account",
+    "username": "Username",
+    "password": "Password",
+    "grade": "Grade",
+    "optional": "optional",
+    "signedInAs": "Signed in as",
+    "logout": "Sign out",
+    "pleaseWait": "Please wait...",
+    "haveAccount": "Already have an account? Sign in",
+    "needAccount": "New student? Create an account"
+  },
+  "dashboard": {
+    "eyebrow": "Learning analytics",
+    "title": "My learning progress",
+    "teacherTitle": "Student learning progress",
+    "subtitle": "See what is going well, what to practice next, and how difficulty adapts to your valid answers.",
+    "selectStudent": "Choose an assigned student",
+    "noStudents": "No active students are assigned to your teacher account.",
+    "totalAttempts": "Valid answers",
+    "overallAccuracy": "Overall accuracy",
+    "correctAnswers": "Correct answers",
+    "performance": "Performance by activity",
+    "numberIdentification": "Number identification",
+    "accuracy": "Answer accuracy",
+    "numberAccuracy": "Target-answer accuracy",
+    "noPerformanceData": "No scored performance data yet.",
+    "averageConfidence": "Average recognition confidence",
+    "highConfidenceRecognitions": "{recognized} higher-confidence recognitions from {total} recorded recognition events. This is not answer accuracy.",
+    "numberIdentificationNote": "Number accuracy compares a confidently recognized sign with its prompted target. Recognition confidence is reported separately.",
+    "targetAnswers": "Correct targets: {correct} of {total} scored answers.",
+    "evidenceReady": "Enough evidence for adaptation",
+    "moreEvidence": "{count} more valid answer(s) needed for adaptation",
+    "recentAccuracy": "Recent accuracy",
+    "averageResponseTime": "Average response time",
+    "trend": "Recent trend",
+    "weakAreas": "Areas to practice",
+    "noWeakAreas": "No area currently shows a strong need for extra support. Keep practicing to build a reliable history.",
+    "weakAreaSignals": {
+      "low_accuracy": "Low overall or recent accuracy",
+      "declining_trend": "Recent accuracy has declined",
+      "repeated_errors": "Several incorrect answers in a row",
+      "frequent_skips": "Frequent skipped questions",
+      "hint_dependence": "Hints used on many recent answers"
+    },
+    "weakSignalEvidence": "Additional signals: {signals}.",
+    "weeklyProgress": "Weekly progress",
+    "weeklyProgressSubtitle": "Daily valid answers and completed activities for the last seven UTC days.",
+    "weeklyAttempts": "Valid answers this week",
+    "activeDays": "Active days",
+    "weeklyAccuracy": "Weekly accuracy",
+    "weeklyCompletedActivities": "Activities completed this week",
+    "dailyAttempts": "Valid answers",
+    "dailyCorrect": "Correct answers",
+    "weeklyChartAria": "Bar chart of valid and correct answers for each of the last seven days.",
+    "activityCompletion": "Activity completion",
+    "completedActivities": "Completed / started activities",
+    "activityCompletionRate": "Completion rate",
+    "activityStatus": "Other activity statuses",
+    "activityStatusSummary": "In progress: {inProgress} · Abandoned: {abandoned}",
+    "operationCompletion": "{operation} activity completion rate",
+    "strengths": "Demonstrated strengths",
+    "noStrengths": "No operation meets the current evidence and accuracy thresholds yet.",
+    "strengthEvidence": "Based on {attempts} scored answers; recent accuracy {recent}.",
+    "achievements": "Achievements and milestones",
+    "achievementNames": {
+      "first_completed_activity": "First activity completed",
+      "weekly_practice": "Three active days this week",
+      "operation_strength": "Consistent operation accuracy",
+      "mastery_step": "First learning-path step mastered"
+    },
+    "achievementEarned": "Milestone earned",
+    "achievementProgress": "{progress} / {target} toward milestone",
+    "learningObjective": "Objective",
+    "activityTypes": {
+      "generated_arithmetic_practice": "Interactive arithmetic practice",
+      "prompted_sign_recognition": "Prompted signed-number recognition"
+    },
+    "activityCatalogue": {
+      "number_identification": {
+        "title": "Prompted signed-number practice",
+        "description": "Recognize the displayed target number using its sign.",
+        "objective": "Improve signed-number identification accuracy with immediate target feedback."
+      },
+      "addition": {
+        "title": "Addition: generated practice",
+        "description": "Solve generated addition questions using a sign or typed answer.",
+        "objective": "Build addition fluency and accuracy at your adaptive level."
+      },
+      "subtraction": {
+        "title": "Subtraction: generated practice",
+        "description": "Solve generated subtraction questions using a sign or typed answer.",
+        "objective": "Build subtraction fluency and accuracy at your adaptive level."
+      },
+      "multiplication": {
+        "title": "Multiplication: generated practice",
+        "description": "Solve generated multiplication questions using a sign or typed answer.",
+        "objective": "Build multiplication fluency and accuracy at your adaptive level."
+      },
+      "division": {
+        "title": "Division: generated practice",
+        "description": "Solve generated division questions using a sign or typed answer.",
+        "objective": "Build division fluency and accuracy at your adaptive level."
+      }
+    },
+    "practice": "Practice",
+    "recommendations": "Recommended next steps",
+    "noRecommendations": "No active recommendations right now.",
+    "recommendationReasons": {
+      "buildEvidence": "Complete {count} more valid answer(s) to get reliable personalized guidance.",
+      "weakArea": "Overall accuracy is {accuracy}; recent accuracy is {recent}. Practice at {difficulty} and review this operation."
+    },
+    "learningPath": "Your learning path",
+    "pathProgress": "Path progress",
+    "openStep": "Open activity",
+    "difficultyHistory": "Difficulty adjustments",
+    "noAdjustments": "Difficulty has not changed yet. Adjustments appear after enough consistent answer evidence.",
+    "pathSkills": {
+      "number_identification_0_9": "Sign numbers 0-9",
+      "number_identification_10_19": "Sign numbers 10-19",
+      "number_identification_20_29": "Sign numbers 20-29",
+      "number_identification_30_39": "Sign numbers 30-39",
+      "number_identification_40_50": "Sign numbers 40-50",
+      "addition_easy": "Addition basics",
+      "addition_standard": "Addition practice",
+      "addition_hard": "Addition challenge",
+      "subtraction_easy": "Subtraction basics",
+      "subtraction_standard": "Subtraction practice",
+      "subtraction_hard": "Subtraction challenge",
+      "multiplication_easy": "Multiplication basics",
+      "multiplication_standard": "Multiplication practice",
+      "multiplication_hard": "Multiplication challenge",
+      "division_easy": "Division basics",
+      "division_standard": "Division practice",
+      "division_hard": "Division challenge"
+    },
+    "pathReasons": {
+      "recognition_confidence": "Explore signed numbers. Recognition confidence is kept separate from answer accuracy.",
+      "evidence_needed": "Build an answer history before moving to harder practice.",
+      "weak_area": "Prioritized because this operation currently needs more practice.",
+      "mastery_needed": "Keep practicing until your recent answers show mastery.",
+      "continue_mastery": "Continue building mastery with difficulty adjusted from valid answers."
+    },
+    "notAvailable": "Not available yet",
+    "stepStatus": {
+      "locked": "Up next",
+      "in_progress": "Ready to practice",
+      "completed": "Completed"
+    }
   }
 }

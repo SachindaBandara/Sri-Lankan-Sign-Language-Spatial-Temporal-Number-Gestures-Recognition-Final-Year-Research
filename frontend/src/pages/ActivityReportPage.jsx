@@ -1,40 +1,29 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, BarChart3, Trash2 } from "lucide-react";
+import { ArrowLeft, BarChart3 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Alert, AlertDescription } from "../components/ui/alert";
 import { useTranslation } from "../i18n";
-
-const ACTIVITY_REPORT_KEY = "activity-performance-report";
-
-function readReportEntries() {
-  try {
-    return JSON.parse(localStorage.getItem(ACTIVITY_REPORT_KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
+import { getQuestionAttemptHistory } from "../services/api";
 
 export default function ActivityReportPage() {
   const { t } = useTranslation();
   const [entries, setEntries] = useState([]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [summary, setSummary] = useState({ total_attempts: 0, correct: 0, points: 0 });
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    setEntries(readReportEntries());
-  }, []);
-
-  const summary = useMemo(() => {
-    const total = entries.length;
-    const correct = entries.filter((entry) => entry.isCorrect).length;
-    const points = entries.reduce((sum, entry) => sum + (entry.points || 0), 0);
-
-    return { total, correct, points };
-  }, [entries]);
-
-  const clearReport = () => {
-    localStorage.removeItem(ACTIVITY_REPORT_KEY);
-    setEntries([]);
-  };
+    getQuestionAttemptHistory(page)
+      .then((result) => {
+        setEntries(result.items);
+        setTotal(result.total);
+        setSummary(result.summary);
+      })
+      .catch((requestError) => setError(requestError.message));
+  }, [page]);
 
   return (
     <section className="space-y-6 sm:space-y-8">
@@ -60,10 +49,6 @@ export default function ActivityReportPage() {
                 {t("report.back") || "Back"}
               </Link>
             </Button>
-            <Button variant="destructive" onClick={clearReport}>
-              <Trash2 className="mr-2 h-4 w-4 " />
-              {t("report.clear") || "Clear"}
-            </Button>
           </div>
         </CardHeader>
       </Card>
@@ -71,8 +56,8 @@ export default function ActivityReportPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="learning-card">
           <CardContent className="p-6">
-            <p className="text-sm text-slate-500">{t("report.totalAttempts") || "Total attempts"}</p>
-            <p className="english-font mt-2 text-3xl font-bold text-slate-900">{summary.total}</p>
+            <p className="text-sm text-slate-500">{t("report.totalAttempts") || "Valid answer attempts"}</p>
+            <p className="english-font mt-2 text-3xl font-bold text-slate-900">{summary.total_attempts}</p>
           </CardContent>
         </Card>
         <Card className="learning-card">
@@ -94,6 +79,7 @@ export default function ActivityReportPage() {
           <CardTitle className="text-lg font-extrabold sm:text-xl">{t("report.tableTitle") || "Performance details"}</CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto px-4 sm:px-6">
+          {error && <Alert variant="destructive" role="alert" className="mb-4"><AlertDescription>{error}</AlertDescription></Alert>}
           {entries.length === 0 ? (
             <p className="py-2 text-sm text-slate-500">{t("report.empty") || "No activity attempts recorded yet."}</p>
           ) : (
@@ -111,18 +97,29 @@ export default function ActivityReportPage() {
                 {entries.map((entry) => (
                   <tr key={entry.id} className="border-b border-slate-100 align-top transition-colors hover:bg-violet-50/50">
                     <td className="english-font py-4 pr-4 font-medium text-slate-900">{entry.question}</td>
-                    <td className="english-font py-4 pr-4 text-slate-700">{entry.correctAnswer}</td>
-                    <td className="english-font py-4 pr-4 text-slate-700">{entry.submittedAnswer}</td>
-                    <td className={entry.isCorrect ? "py-4 pr-4 font-semibold text-emerald-600" : "py-4 pr-4 font-semibold text-red-600"}>
-                      <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${entry.isCorrect ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
-                        {entry.isCorrect ? (t("activity.correct") || "Correct") : (t("activity.wrong") || "Incorrect")}
+                    <td className="english-font py-4 pr-4 text-slate-700">{entry.expected_answer ?? "—"}</td>
+                    <td className="english-font py-4 pr-4 text-slate-700">{entry.submitted_answer ?? "—"}</td>
+                    <td className={entry.is_correct ? "py-4 pr-4 font-semibold text-emerald-600" : "py-4 pr-4 font-semibold text-red-600"}>
+                      <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${entry.is_correct ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                        {entry.status === "skipped" ? t("activity.skipped") : entry.status === "invalid" ? t("activity.invalid") : entry.status === "unanswered" ? t("activity.unanswered") : entry.is_correct ? (t("activity.correct") || "Correct") : (t("activity.wrong") || "Incorrect")}
                       </span>
                     </td>
-                    <td className="english-font py-4 pr-4 font-semibold text-indigo-600">{entry.points}</td>
+                    <td className="english-font py-4 pr-4 font-semibold text-indigo-600">{entry.is_correct ? 1 : 0}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          )}
+          {total > 100 && (
+            <div className="flex items-center justify-between gap-3 py-4">
+              <Button variant="outline" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page === 1}>
+                {t("report.previous")}
+              </Button>
+              <p className="text-sm text-slate-600">{page} / {Math.ceil(total / 100)}</p>
+              <Button variant="outline" onClick={() => setPage((current) => current + 1)} disabled={page >= Math.ceil(total / 100)}>
+                {t("report.next")}
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>

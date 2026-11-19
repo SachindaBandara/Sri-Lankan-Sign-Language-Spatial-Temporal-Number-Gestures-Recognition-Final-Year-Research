@@ -429,9 +429,7 @@ class InferenceManager:
         return results[0]
 
     # ======================================================
-    # TARGETED PREDICTION — used by /activity/validate-answer
-    # when the expected answer (and therefore the correct
-    # range model) is already known.
+    # TARGETED PREDICTION — selects a specific range model.
     # ======================================================
 
     def predict_with_model(self, model_key: str, video_base64: str) -> tuple[int | None, float]:

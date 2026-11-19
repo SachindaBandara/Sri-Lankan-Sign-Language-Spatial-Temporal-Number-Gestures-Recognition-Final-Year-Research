@@ -13,29 +13,61 @@ MODEL_RANGES = {
     "40-50": (40, 50),
 }
 
+DIFFICULTY_LEVELS = {"easy", "standard", "hard"}
 
-def generate_question(operation: str) -> dict:
+
+def generate_question(operation: str, difficulty_level: str = "standard") -> dict:
+    if difficulty_level not in DIFFICULTY_LEVELS:
+        raise ValueError("Unsupported difficulty level")
+
     if operation == "addition":
-        left = random.randint(0, 25)
-        right = random.randint(0, 25)
+        minimum, maximum = {
+            "easy": (0, 10),
+            "standard": (0, 25),
+            "hard": (10, 25),
+        }[difficulty_level]
+        left = random.randint(minimum, maximum)
+        right = random.randint(minimum, maximum)
         answer = left + right
         operator = "+"
 
     elif operation == "subtraction":
-        left = random.randint(10, 50)
-        right = random.randint(0, left)
+        minimum_left, maximum_left, minimum_right = {
+            "easy": (0, 20, 0),
+            "standard": (10, 50, 0),
+            "hard": (25, 50, 10),
+        }[difficulty_level]
+        left = random.randint(minimum_left, maximum_left)
+        right = random.randint(minimum_right, left)
         answer = left - right
         operator = "-"
 
     elif operation == "multiplication":
-        left = random.randint(0, 10)
-        right = random.randint(0, 10)
+        if difficulty_level == "easy":
+            left = random.randint(0, 5)
+            max_right = 5 if left == 0 else min(5, 25 // left)
+            right = random.randint(0, max_right)
+        elif difficulty_level == "standard":
+            left = random.randint(0, 10)
+            max_right = 10 if left == 0 else min(10, 50 // left)
+            right = random.randint(0, max_right)
+        else:
+            left = random.randint(5, 10)
+            max_right = min(10, 50 // left)
+            right = random.randint(5, max_right)
         answer = left * right
         operator = "x"
 
     elif operation == "division":
-        right = random.randint(1, 10)
-        answer = random.randint(0, 10)
+        if difficulty_level == "easy":
+            right = random.randint(1, 5)
+            answer = random.randint(0, 5)
+        elif difficulty_level == "standard":
+            right = random.randint(1, 10)
+            answer = random.randint(0, 10)
+        else:
+            right = random.randint(6, 10)
+            answer = random.randint(1, 50 // right)
         left = answer * right
         operator = "/"
 

@@ -1,23 +1,40 @@
-import { Calculator, Hand, House, Sparkles } from "lucide-react";
+import { Calculator, Hand, House, Sparkles, UserRound } from "lucide-react";
 import { NavLink, Route, Routes, useLocation } from "react-router-dom";
 import ActivitiesPage from "./pages/ActivitiesPage";
 import ActivityReportPage from "./pages/ActivityReportPage";
 import HomePage from "./pages/HomePage";
 import NumberIdentificationPage from "./pages/NumberIdentificationPage";
+import LearningDashboardPage from "./pages/LearningDashboardPage";
 import { cn } from "./lib/utils";
 import { I18nProvider, useTranslation } from "./i18n";
 import LanguageSelector from "./components/LanguageSelector";
 import ActivityNav from "./components/ActivityNav";
+import StudentOnly from "./components/StudentOnly";
+import AccountPage from "./pages/AccountPage";
+import { AuthProvider, useAuth } from "./auth/AuthContext";
 
 function InnerApp() {
   const { lang, t } = useTranslation();
+  const { user, loading: authLoading } = useAuth();
   const location = useLocation();
 
-  const navItems = [
-    { path: "/", label: t("nav.home"), mobileLabel: t("nav.mobile.home"), icon: House },
-    { path: "/number-identification", label: t("nav.number"), mobileLabel: t("nav.mobile.number"), icon: Hand },
-    { path: "/activities", label: t("nav.activities"), mobileLabel: t("nav.mobile.activities"), icon: Calculator },
-  ];
+  const navItems = !user
+    ? []
+    : user.role === "teacher"
+    ? [
+      { path: "/", label: t("nav.home"), mobileLabel: t("nav.mobile.home"), icon: House },
+      { path: "/dashboard", label: t("nav.teacherDashboard"), mobileLabel: t("nav.mobile.teacherDashboard"), icon: Sparkles },
+      { path: "/account", label: user.username || t("nav.account"), mobileLabel: t("nav.mobile.account"), icon: UserRound },
+    ]
+    : [
+      { path: "/", label: t("nav.home"), mobileLabel: t("nav.mobile.home"), icon: House },
+      ...(user?.role === "student"
+        ? [{ path: "/dashboard", label: t("nav.dashboard"), mobileLabel: t("nav.mobile.dashboard"), icon: Sparkles }]
+        : []),
+      { path: "/number-identification", label: t("nav.number"), mobileLabel: t("nav.mobile.number"), icon: Hand },
+      { path: "/activities", label: t("nav.activities"), mobileLabel: t("nav.mobile.activities"), icon: Calculator },
+      { path: "/account", label: user?.username || t("nav.account"), mobileLabel: t("nav.mobile.account"), icon: UserRound },
+    ];
 
   return (
     <div className="app-shell" lang={lang}>
@@ -37,32 +54,54 @@ function InnerApp() {
             </span>
           </NavLink>
 
-          <nav aria-label={t("app.mainNavigation")} className="hidden items-center gap-1 rounded-full border border-white/80 bg-white/75 p-1 shadow-sm md:flex">
-            {navItems.map((item) => (
+          <div className="flex shrink-0 items-center gap-3">
+            {navItems.length > 0 && (
+              <nav aria-label={t("app.mainNavigation")} className="hidden min-w-0 items-center gap-1 rounded-full border border-white/80 bg-white/75 p-1 shadow-sm lg:flex">
+                {navItems.map((item) => {
+                  const accountOnly = item.path === "/account";
+                  return (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      end={item.path === "/"}
+                      aria-label={item.label}
+                      title={item.label}
+                      className={({ isActive }) =>
+                        cn(
+                          "inline-flex min-h-11 items-center justify-center gap-2 rounded-full text-sm font-bold leading-tight transition-colors",
+                          accountOnly
+                            ? "h-11 w-11 shrink-0"
+                            : "min-w-[5.5rem] max-w-36 px-3 py-2 text-center",
+                          isActive
+                            ? "bg-violet-600 text-white shadow-sm"
+                            : "text-slate-600 hover:bg-violet-50 hover:text-violet-700"
+                        )
+                      }
+                    >
+                      <item.icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                      {!accountOnly && <span className="min-w-0 break-words">{item.label}</span>}
+                    </NavLink>
+                  );
+                })}
+              </nav>
+            )}
+            {!authLoading && !user && (
               <NavLink
-                key={item.path}
-                to={item.path}
-                end={item.path === "/"}
-                className={({ isActive }) =>
-                  cn(
-                    "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-colors",
-                    isActive
-                      ? "bg-violet-600 text-white shadow-sm"
-                      : "text-slate-600 hover:bg-violet-50 hover:text-violet-700"
-                  )
-                }
+                to="/account"
+                className="inline-flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-violet-600 px-5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-violet-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2"
               >
-                <item.icon className="h-4 w-4" aria-hidden="true" />
-                {item.label}
+                {t("account.login")}
               </NavLink>
-            ))}
-          </nav>
-
-          <LanguageSelector className="shrink-0" />
+            )}
+            <LanguageSelector className="shrink-0" />
+          </div>
         </div>
       </header>
 
-      <main className="mx-auto min-h-[calc(100vh-5rem)] w-full max-w-6xl px-4 pb-28 pt-5 sm:px-6 sm:pb-12 sm:pt-8">
+      <main className={cn(
+        "mx-auto min-h-[calc(100vh-5rem)] w-full max-w-6xl px-4 pt-5 sm:px-6 sm:pt-8",
+        navItems.length > 0 ? "pb-28 lg:pb-12" : "pb-12",
+      )}>
         {location.pathname === "/activities" && (
           <div className="mb-6">
             <ActivityNav />
@@ -70,30 +109,34 @@ function InnerApp() {
         )}
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/number-identification" element={<NumberIdentificationPage />} />
-          <Route path="/activities" element={<ActivitiesPage />} />
-          <Route path="/activity-report" element={<ActivityReportPage />} />
+          <Route path="/number-identification" element={<StudentOnly><NumberIdentificationPage /></StudentOnly>} />
+          <Route path="/activities" element={<StudentOnly><ActivitiesPage /></StudentOnly>} />
+          <Route path="/activity-report" element={<StudentOnly><ActivityReportPage /></StudentOnly>} />
+          <Route path="/dashboard" element={<LearningDashboardPage />} />
+          <Route path="/account" element={<AccountPage />} />
         </Routes>
       </main>
 
-      <nav aria-label={t("app.mainNavigation")} className="mobile-nav md:hidden">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            end={item.path === "/"}
-            className={({ isActive }) =>
-              cn(
-                "mobile-nav-link",
-                isActive && "mobile-nav-link-active"
-              )
-            }
-          >
-            <item.icon className="h-5 w-5" aria-hidden="true" />
-            <span>{item.mobileLabel}</span>
-          </NavLink>
-        ))}
-      </nav>
+      {navItems.length > 0 && (
+        <nav aria-label={t("app.mainNavigation")} className="mobile-nav lg:hidden">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              end={item.path === "/"}
+              className={({ isActive }) =>
+                cn(
+                  "mobile-nav-link",
+                  isActive && "mobile-nav-link-active"
+                )
+              }
+            >
+              <item.icon className="h-5 w-5" aria-hidden="true" />
+              <span>{item.mobileLabel}</span>
+            </NavLink>
+          ))}
+        </nav>
+      )}
     </div>
   );
 }
@@ -101,7 +144,9 @@ function InnerApp() {
 export default function App() {
   return (
     <I18nProvider>
-      <InnerApp />
+      <AuthProvider>
+        <InnerApp />
+      </AuthProvider>
     </I18nProvider>
   );
 }

@@ -16,6 +16,7 @@ export default function WebcamRecorder({ onVideoCapture, className = "" }) {
   const chunksRef = useRef([]);
   const countdownRef = useRef(null);
   const timeoutRef = useRef(null);
+  const recordingStartedAtRef = useRef(null);
 
   const [error, setError] = useState("");
   const [state, setState] = useState("idle");
@@ -54,6 +55,7 @@ export default function WebcamRecorder({ onVideoCapture, className = "" }) {
     setState("recording");
 
     chunksRef.current = [];
+    recordingStartedAtRef.current = Date.now();
 
     const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
       ? "video/webm;codecs=vp9"
@@ -68,13 +70,17 @@ export default function WebcamRecorder({ onVideoCapture, className = "" }) {
 
     recorder.onstop = () => {
       setState("processing");
+      const capturedAt = Date.now();
 
       const blob = new Blob(chunksRef.current, { type: mimeType });
 
       const reader = new FileReader();
       reader.onloadend = () => {
         const base64 = reader.result;
-        onVideoCapture?.(base64);
+        onVideoCapture?.(base64, {
+          startedAt: recordingStartedAtRef.current,
+          capturedAt,
+        });
 
         setState("idle");
         setCountdown(0);

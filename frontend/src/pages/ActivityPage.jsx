@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Brain, Sparkles } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -10,27 +10,23 @@ import { useTranslation } from "../i18n";
 import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
 
 import {
+  clearQuestionSubmissionKey,
+  completeStudentActivity,
   generateQuestion,
+  getQuestionSubmissionKey,
+  markQuestionDisplayed,
   predictNumber,
-  validateActivityAnswer,
+  recordRecognition,
+  startStudentActivity,
+  submitLearningAnswer,
 } from "../services/api";
 
-const ACTIVITY_REPORT_KEY = "activity-performance-report";
-
-function readReportEntries() {
-  try {
-    return JSON.parse(localStorage.getItem(ACTIVITY_REPORT_KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
-
-function writeReportEntry(entry) {
-  const current = readReportEntries();
-  localStorage.setItem(ACTIVITY_REPORT_KEY, JSON.stringify([entry, ...current]));
-}
-
-export default function ActivityPage({ operation, title, icon }) {
+export default function ActivityPage({
+  operation,
+  title,
+  icon,
+  initialDifficulty = "adaptive",
+}) {
   const { t } = useTranslation();
   const reduceMotion = usePrefersReducedMotion();
   const navigate = useNavigate();
@@ -40,91 +36,258 @@ export default function ActivityPage({ operation, title, icon }) {
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [activityAttempt, setActivityAttempt] = useState(null);
+  const [difficultyLevel, setDifficultyLevel] = useState(initialDifficulty);
+  const [confidence, setConfidence] = useState(null);
+  const [finished, setFinished] = useState(false);
+  const questionDisplayedAt = useRef(null);
+  const responseElapsedMs = useRef(0);
+  const responseClockStartedAt = useRef(null);
   const displayOperator = operation === "division" ? "÷" : problem?.operator;
 
-  const loadProblem = async () => {
+  const loadProblem = useCallback(async (activityId) => {
     setError("");
     setResult(null);
-    const storageKey = `activity-current-problem-${operation}`;
-    // If a saved problem exists for this operation, load it (persist across navigation/refresh)
-    const saved = localStorage.getItem(storageKey);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setProblem(parsed);
-        return;
-      } catch {
-        // fall through to fetch a new problem
-      }
-    }
-
-    const data = await generateQuestion(operation);
+    setLivePrediction("--");
+    setConfidence(null);
+    const data = await generateQuestion(operation, activityId);
     setProblem(data);
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(data));
-    } catch {}
-  };
-
-  useEffect(() => {
-    loadProblem().catch((err) => setError(err.message));
+    return data;
   }, [operation]);
 
-  /**
-   * FIX: video-based prediction (not frame streaming)
-   */
-  const handleVideo = useCallback(async (videoBase64) => {
+  useEffect(() => {
+    if (!problem?.id) return;
+    const key = `learning-question-start:${problem.id}`;
+    const elapsedKey = `learning-question-elapsed:${problem.id}`;
+    const savedStart = Number(sessionStorage.getItem(key));
+    const elapsed = Number(sessionStorage.getItem(elapsedKey));
+    const start = Number.isFinite(savedStart) && savedStart > 0 ? savedStart : Date.now();
+    if (!savedStart) sessionStorage.setItem(key, String(start));
+    questionDisplayedAt.current = start;
+    responseElapsedMs.current = Number.isFinite(elapsed) && elapsed > 0 ? elapsed : 0;
+    responseClockStartedAt.current = document.visibilityState === "visible"
+      ? savedStart ? Date.now() : start
+      : null;
+    markQuestionDisplayed(problem.id).catch((err) => setError(err.message));
+
+    const saveActiveTime = () => {
+      if (responseClockStartedAt.current !== null) {
+        responseElapsedMs.current += Math.max(0, Date.now() - responseClockStartedAt.current);
+        responseClockStartedAt.current = null;
+        sessionStorage.setItem(elapsedKey, String(responseElapsedMs.current));
+      }
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        saveActiveTime();
+      } else if (responseClockStartedAt.current === null) {
+        responseClockStartedAt.current = Date.now();
+      }
+    };
+    window.addEventListener("pagehide", saveActiveTime);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      window.removeEventListener("pagehide", saveActiveTime);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [problem?.id]);
+
+  const handleVideo = useCallback(async (videoBase64, captureTiming) => {
+    if (!activityAttempt || !problem) {
+      setError(t("account.pleaseWait"));
+      return;
+    }
     setLoading(true);
     setError("");
     setLivePrediction("--");
+    const startedAt = Number(captureTiming?.startedAt);
+    const capturedAt = Number(captureTiming?.capturedAt);
+    if (Number.isFinite(startedAt) && Number.isFinite(capturedAt) && capturedAt >= startedAt) {
+      const activeStart = responseClockStartedAt.current ?? startedAt;
+      responseElapsedMs.current += Math.max(0, startedAt - activeStart) + capturedAt - startedAt;
+      responseClockStartedAt.current = null;
+      sessionStorage.setItem(`learning-question-elapsed:${problem.id}`, String(responseElapsedMs.current));
+    }
 
     try {
       const data = await predictNumber(videoBase64);
-
+      try {
+        await recordRecognition({
+          activity_attempt_id: activityAttempt.id,
+          question_id: problem?.id,
+          predicted_value: data.predicted_number,
+          confidence: data.confidence,
+          model_key: data.model_key,
+          recognition_token: data.recognition_token,
+          gesture_detected: true,
+        });
+      } catch (trackingError) {
+        setError(trackingError.message);
+        return;
+      }
+      setConfidence(data.confidence);
       setLivePrediction(String(data.predicted_number));
     } catch (err) {
-      if (err.message !== "No hand landmarks detected in the video") {
+      if (err.message === "No hand landmarks detected in the video") {
+        try {
+          await recordRecognition({
+            activity_attempt_id: activityAttempt.id,
+            question_id: problem?.id,
+            gesture_detected: false,
+            status: "no_gesture",
+          });
+        } catch (trackingError) {
+          setError(trackingError.message);
+        }
+      } else {
+        try {
+          await recordRecognition({
+            activity_attempt_id: activityAttempt.id,
+            question_id: problem?.id,
+            gesture_detected: false,
+            status: "processing_failed",
+          });
+        } catch (trackingError) {
+          setError(trackingError.message);
+        }
         setError(err.message);
       }
     } finally {
+      responseClockStartedAt.current = document.visibilityState === "visible" ? Date.now() : null;
+      if (problem?.id) {
+        sessionStorage.setItem(`learning-question-elapsed:${problem.id}`, String(responseElapsedMs.current));
+      }
       setLoading(false);
     }
-  }, []);
+  }, [activityAttempt, problem, t]);
 
   /**
    * FIXED backend payload
    */
   const submitLiveAnswer = async () => {
-    if (!problem || livePrediction === "--") return;
+    if (!problem || !activityAttempt || livePrediction === "--" || confidence < 0.6) return;
 
     setLoading(true);
     setError("");
 
     try {
-      const evaluation = await validateActivityAnswer({
-        operation,
-        left: problem.left,
-        right: problem.right,
-        predicted_number: Number(livePrediction), // ✅ FIXED
+      const requestKey = getQuestionSubmissionKey(problem.id);
+      const responseTime = Math.max(
+        0,
+        Math.min(
+          86_400_000,
+          responseElapsedMs.current + Math.max(0, Date.now() - (responseClockStartedAt.current ?? questionDisplayedAt.current))
+        )
+      );
+      const response = await submitLearningAnswer(problem.id, {
+        idempotency_key: requestKey,
+        submitted_answer: Number(livePrediction),
+        response_time_ms: responseTime,
+        hint_used: false,
       });
-
+      const evaluation = response.attempt;
       setResult(evaluation);
-
-      writeReportEntry({
-        id: crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-        operation,
-        title,
-        question: `${problem.left} ${displayOperator} ${problem.right} = ?`,
-        correctAnswer: evaluation.expected_answer,
-        submittedAnswer: livePrediction,
-        isCorrect: Boolean(evaluation.is_correct),
-        points: evaluation.is_correct ? 1 : 0,
-        createdAt: new Date().toISOString(),
-      });
-
+      clearQuestionSubmissionKey(problem.id);
+      sessionStorage.removeItem(`learning-question-start:${problem.id}`);
+      sessionStorage.removeItem(`learning-question-elapsed:${problem.id}`);
       setScore((prev) => ({
         correct: prev.correct + (evaluation.is_correct ? 1 : 0),
         total: prev.total + 1,
       }));
+      if (!evaluation.is_correct) {
+        responseClockStartedAt.current = null;
+        const retryStart = Date.now();
+        questionDisplayedAt.current = retryStart;
+        responseElapsedMs.current = 0;
+        sessionStorage.setItem(`learning-question-start:${problem.id}`, String(retryStart));
+        sessionStorage.setItem(`learning-question-elapsed:${problem.id}`, "0");
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const finishActivity = async () => {
+    if (!activityAttempt || loading) return;
+    setLoading(true);
+    setError("");
+    try {
+      if (problem && !result?.is_correct) {
+        await submitLearningAnswer(problem.id, {
+          idempotency_key: getQuestionSubmissionKey(problem.id),
+          skipped: true,
+          response_time_ms: Math.max(
+            0,
+            Math.min(
+              86_400_000,
+              responseElapsedMs.current + Math.max(
+                0,
+                Date.now() - (responseClockStartedAt.current ?? questionDisplayedAt.current),
+              ),
+            ),
+          ),
+        });
+        clearQuestionSubmissionKey(problem.id);
+        sessionStorage.removeItem(`learning-question-start:${problem.id}`);
+        sessionStorage.removeItem(`learning-question-elapsed:${problem.id}`);
+      }
+      await completeStudentActivity(
+        operation,
+        activityAttempt.id,
+        difficultyLevel,
+      );
+      setActivityAttempt(null);
+      setProblem(null);
+      setResult(null);
+      setFinished(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const retryQuestion = () => {
+    if (!problem) return;
+    setResult(null);
+    setLivePrediction("--");
+    setConfidence(null);
+    responseElapsedMs.current = 0;
+    questionDisplayedAt.current = Date.now();
+    responseClockStartedAt.current = Date.now();
+    sessionStorage.setItem(`learning-question-start:${problem.id}`, String(questionDisplayedAt.current));
+    sessionStorage.setItem(`learning-question-elapsed:${problem.id}`, "0");
+  };
+
+  const nextProblem = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      let activeActivity = activityAttempt;
+      if (finished || !activeActivity) {
+        activeActivity = await startStudentActivity(operation, difficultyLevel);
+        setActivityAttempt(activeActivity);
+        setFinished(false);
+        setScore({ correct: 0, total: 0 });
+      } else if (problem && !result?.is_correct) {
+        await submitLearningAnswer(problem.id, {
+          idempotency_key: getQuestionSubmissionKey(problem.id),
+          skipped: true,
+          response_time_ms: Math.max(
+            0,
+            Math.min(
+              86_400_000,
+              responseElapsedMs.current + Math.max(0, Date.now() - (responseClockStartedAt.current ?? questionDisplayedAt.current))
+            )
+          ),
+        });
+        clearQuestionSubmissionKey(problem.id);
+        sessionStorage.removeItem(`learning-question-start:${problem.id}`);
+        sessionStorage.removeItem(`learning-question-elapsed:${problem.id}`);
+      }
+      await loadProblem(activeActivity.id);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -156,82 +319,120 @@ export default function ActivityPage({ operation, title, icon }) {
         </div>
       </div>
 
-      <Card className="learning-card overflow-hidden">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-bold text-slate-600">
-            {t("activity.solveThis")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div aria-live="polite" className="flex min-h-24 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-r from-violet-50 to-sky-50 px-3 py-5 text-3xl font-black tracking-wide text-slate-900 sm:min-h-28 sm:text-5xl">
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={problem ? `${problem.left}-${problem.operator}-${problem.right}` : "loading"}
-                className={problem ? "english-font" : undefined}
-                initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.92, y: 8 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.96, y: -6 }}
-                transition={{ duration: reduceMotion ? 0.15 : 0.2, ease: "easeOut" }}
+      {(!activityAttempt || finished) && (
+        <Card className="learning-card">
+          <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-end sm:justify-between sm:p-6">
+            <div className="w-full space-y-2 sm:max-w-xs">
+              <label htmlFor="activity-difficulty" className="text-sm font-bold text-slate-700">
+                {t("activity.difficulty")}
+              </label>
+              <select
+                id="activity-difficulty"
+                value={difficultyLevel}
+                onChange={(event) => setDifficultyLevel(event.target.value)}
+                className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
               >
-                {problem
-                  ? `${problem.left} ${displayOperator} ${problem.right} = ?`
-                  : <span className="text-base font-semibold text-slate-500">{t("activity.loadingQuestion")}</span>}
-              </motion.span>
-            </AnimatePresence>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <WebcamRecorder onVideoCapture={handleVideo} />
-
-        <Card className="flex min-h-[28rem] flex-col items-center justify-center overflow-hidden rounded-[1.5rem] border-0 bg-gradient-to-br from-violet-600 to-indigo-700 text-white shadow-[0_16px_40px_rgba(87,65,194,0.18)]">
-          <CardContent className="flex w-full flex-1 flex-col items-center justify-center p-6 text-center sm:p-8">
-            <motion.span
-              className="grid h-12 w-12 place-items-center rounded-2xl bg-white/15 text-amber-200 ring-1 ring-white/20"
-              initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.7, rotate: -10 }}
-              animate={{ opacity: 1, scale: 1, rotate: 0 }}
-              transition={{ duration: reduceMotion ? 0.18 : 0.35, ease: "easeOut" }}
-            >
-              <Sparkles className="h-6 w-6" aria-hidden="true" />
-            </motion.span>
-            <p className="mt-4 text-sm font-bold text-white/75">{t("activity.predicted")}</p>
-            <p aria-live="polite" className="mt-1 min-h-[4.5rem] text-7xl font-black leading-none tracking-tight">
-              <AnimatePresence mode="wait">
-                <motion.span
-                  key={loading ? "processing" : livePrediction}
-                  initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.7, y: 8 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.85, y: -6 }}
-                  transition={{ duration: reduceMotion ? 0.15 : 0.22, ease: "easeOut" }}
-                  className="english-font inline-block"
-                >
-                  {loading ? "…" : livePrediction}
-                </motion.span>
-              </AnimatePresence>
-            </p>
-            <p className="mt-3 text-sm font-semibold text-white/80">
-              {t("activity.score")}:{" "}
-              <span className="english-font">{score.correct}/{score.total}</span>
-            </p>
-
-            {!result && (
-              <motion.div
-                className="mt-5 w-full sm:w-auto"
-                whileTap={reduceMotion ? undefined : { scale: 0.96 }}
-              >
-                <Button
-                  className="w-full bg-amber-300 text-violet-950 hover:bg-amber-200 sm:w-auto"
-                  onClick={submitLiveAnswer}
-                  disabled={!problem || livePrediction === "--" || loading}
-                >
-                  {t("activity.submit")}
-                </Button>
-              </motion.div>
-            )}
+                <option value="adaptive">{t("activity.adaptive")}</option>
+                <option value="easy">{t("activity.easy")}</option>
+                <option value="standard">{t("activity.standard")}</option>
+                <option value="hard">{t("activity.hard")}</option>
+              </select>
+            </div>
+            <Button onClick={nextProblem} disabled={loading} className="w-full sm:w-auto">
+              {t("activity.start")}
+            </Button>
           </CardContent>
         </Card>
-      </div>
+      )}
+
+      {activityAttempt && (
+        <Card className="learning-card overflow-hidden">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between gap-3">
+              <CardTitle className="text-base font-bold text-slate-600">
+                {t("activity.solveThis")}
+              </CardTitle>
+              <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-bold text-violet-700">
+                {t(`activity.${activityAttempt.difficulty_level}`)}
+              </span>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div aria-live="polite" className="flex min-h-24 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-r from-violet-50 to-sky-50 px-3 py-5 text-3xl font-black tracking-wide text-slate-900 sm:min-h-28 sm:text-5xl">
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={problem ? `${problem.left}-${problem.operator}-${problem.right}` : "loading"}
+                  className={problem ? "english-font" : undefined}
+                  initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.92, y: 8 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.96, y: -6 }}
+                  transition={{ duration: reduceMotion ? 0.15 : 0.2, ease: "easeOut" }}
+                >
+                  {problem
+                    ? `${problem.left} ${displayOperator} ${problem.right} = ?`
+                    : <span className="text-base font-semibold text-slate-500">{t("activity.loadingQuestion")}</span>}
+                </motion.span>
+              </AnimatePresence>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {activityAttempt && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          {!finished && <WebcamRecorder onVideoCapture={handleVideo} />}
+
+          <Card className="flex min-h-[28rem] flex-col items-center justify-center overflow-hidden rounded-[1.5rem] border-0 bg-gradient-to-br from-violet-600 to-indigo-700 text-white shadow-[0_16px_40px_rgba(87,65,194,0.18)]">
+            <CardContent className="flex w-full flex-1 flex-col items-center justify-center p-6 text-center sm:p-8">
+              <motion.span
+                className="grid h-12 w-12 place-items-center rounded-2xl bg-white/15 text-amber-200 ring-1 ring-white/20"
+                initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.7, rotate: -10 }}
+                animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                transition={{ duration: reduceMotion ? 0.18 : 0.35, ease: "easeOut" }}
+              >
+                <Sparkles className="h-6 w-6" aria-hidden="true" />
+              </motion.span>
+              <p className="mt-4 text-sm font-bold text-white/75">{t("activity.predicted")}</p>
+              <p aria-live="polite" className="mt-1 min-h-[4.5rem] text-7xl font-black leading-none tracking-tight">
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={loading ? "processing" : livePrediction}
+                    initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.7, y: 8 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.85, y: -6 }}
+                    transition={{ duration: reduceMotion ? 0.15 : 0.22, ease: "easeOut" }}
+                    className="english-font inline-block"
+                  >
+                    {loading ? "…" : livePrediction}
+                  </motion.span>
+                </AnimatePresence>
+              </p>
+              <p className="mt-3 text-sm font-semibold text-white/80">
+                {t("activity.score")}:{" "}
+                <span className="english-font">{score.correct}/{score.total}</span>
+              </p>
+
+              {!result && !finished && (
+                <motion.div
+                  className="mt-5 w-full sm:w-auto"
+                  whileTap={reduceMotion ? undefined : { scale: 0.96 }}
+                >
+                  <Button
+                    className="w-full bg-amber-300 text-violet-950 hover:bg-amber-200 sm:w-auto"
+                    onClick={submitLiveAnswer}
+                    disabled={!problem || livePrediction === "--" || confidence < 0.6 || loading}
+                  >
+                    {t("activity.submit")}
+                  </Button>
+                </motion.div>
+              )}
+              {confidence !== null && confidence < 0.6 && !finished && (
+                <p role="status" className="mt-4 text-sm text-amber-100">{t("activity.lowConfidence")}</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {result && (
         <motion.div
@@ -262,6 +463,11 @@ export default function ActivityPage({ operation, title, icon }) {
           </Card>
         </motion.div>
       )}
+      {activityAttempt && result && !result.is_correct && (
+        <Button onClick={retryQuestion} disabled={loading}>
+          {t("activity.tryAgain")}
+        </Button>
+      )}
 
       {error && (
         <Alert variant="destructive" role="alert">
@@ -270,30 +476,22 @@ export default function ActivityPage({ operation, title, icon }) {
       )}
 
       <div className="flex flex-col gap-3 sm:flex-row">
-        <Button
-          variant="secondary"
-          onClick={async () => {
-            // Force-generate a new problem and persist it
-            setError("");
-            setResult(null);
-            setLivePrediction("--");
-            setLoading(true);
-            try {
-              const data = await generateQuestion(operation);
-              setProblem(data);
-              const storageKey = `activity-current-problem-${operation}`;
-              try { localStorage.setItem(storageKey, JSON.stringify(data)); } catch {}
-            } catch (err) {
-              setError(err.message);
-            } finally {
-              setLoading(false);
-            }
-          }}
-          disabled={loading}
-          className="w-full sm:w-auto"
-        >
-          {t("activity.next")}
-        </Button>
+        {activityAttempt && (
+          <Button
+            variant="secondary"
+            onClick={nextProblem}
+            disabled={loading}
+            className="w-full sm:w-auto"
+          >
+            {t("activity.next")}
+          </Button>
+        )}
+
+        {activityAttempt && !finished && (
+          <Button variant="outline" onClick={finishActivity} disabled={loading || !activityAttempt}>
+            {t("activity.finish")}
+          </Button>
+        )}
 
         <Button
           variant="outline"

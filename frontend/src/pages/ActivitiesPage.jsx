@@ -18,6 +18,10 @@ export default function ActivitiesPage() {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const initial = searchParams.get("tab") || "addition";
+  const requestedDifficulty = searchParams.get("difficulty");
+  const initialDifficulty = ["adaptive", "easy", "standard", "hard"].includes(requestedDifficulty)
+    ? requestedDifficulty
+    : "adaptive";
   const [active, setActive] = useState(initial);
 
   // keep URL in sync when the active tab changes
@@ -39,7 +43,13 @@ export default function ActivitiesPage() {
     <Tabs value={active} onValueChange={handleChange}>
       {ACTIVITY_MODULES.map((module) => (
         <TabsContent key={module.key} value={module.key}>
-          <ActivityPage operation={module.key} title={`${module.label}`} icon={module.icon} />
+          <ActivityPage
+            key={`${module.key}-${initialDifficulty}`}
+            operation={module.key}
+            title={`${module.label}`}
+            icon={module.icon}
+            initialDifficulty={initialDifficulty}
+          />
         </TabsContent>
       ))}
     </Tabs>
